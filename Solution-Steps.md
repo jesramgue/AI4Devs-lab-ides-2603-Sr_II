@@ -9,3 +9,5 @@ Dado que el ticket no es atómomico, hay que refinarlo desde el punto de vista d
     - [Backend-Ticket Split](./prompts/backend_ticket_split.md)
 - Con el split en tickets para backend y frontend detallando las tareas blocker de uno y otro con /plan pediré que teniendo en cuenta ambos tickets (dando contexto del ambos en ficheros Markdown) me genere un plan de implementación incluyendo validación manual, fases y memory banks:
     - [Implementation Plan](./prompts/implementation_plan.md)
+- Basandome en el plan de implementación definido preguntaré en el implementation approach (multi-agente, autopilot, etc), parecido al metaprompt que vimos de Álvaro:
+    - [Implementation Strategy](./prompts/implementation_strategy.md)
