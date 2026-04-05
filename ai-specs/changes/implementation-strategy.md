@@ -32,11 +32,11 @@ Phase 3: [Backend Agent] + [Frontend Agent] → Parallel (1.5-2 hours total)
 
 ## Recommended Workflow
 
-### Phase 1 (Foundation) — START NOW
+### Phase 1 (Foundation) — DONE
 1. **Launch two agents in parallel:**
    - **Backend Agent**: Execute BE-001 (Prisma models)
    - **Frontend Agent**: Execute FE-001 (types + dependencies)
-2. **You review checkpoint** (5–10 min): Verify DB migrates, components render
+2. **You review checkpoint** (5–10 min): Verify DB migrates, components render - START NOW
 3. **Tag & commit:** `git tag phase-1-foundation`
 
 ### Phase 2–5 (Repeat Pattern)
