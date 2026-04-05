@@ -25,4 +25,4 @@ Dado que el ticket no es atómomico, hay que refinarlo desde el punto de vista d
     - En esta versión ya tenemos algo más visual y funcional.
     ![](assets/20260405_231316_image.png)
   - [Phase 3 Meta-Prompt](./prompts/phase-3-meta-prompt.md)
-
+  - [Phase 4 Meta-Prompt](./prompts/phase-4-meta-prompt.md)
