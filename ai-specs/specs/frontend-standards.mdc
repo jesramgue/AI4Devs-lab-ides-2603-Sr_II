@@ -1,0 +1,906 @@
+---
+description: Frontend development standards and best practices for the LTI React application including component patterns, TypeScript conventions, React hooks, state management, Bootstrap integration, accessibility standards, and testing practices
+globs: ["frontend/src/**/*.{ts,tsx}", "frontend/tsconfig.json", "frontend/jest.config.js", "frontend/package.json"]
+alwaysApply: true
+---
+
+# Frontend Development Standards
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [React Component Standards](#react-component-standards)
+- [TypeScript Standards](#typescript-standards)
+- [State Management with Hooks](#state-management-with-hooks)
+- [Service Layer (API Communication)](#service-layer-api-communication)
+- [Bootstrap Integration](#bootstrap-integration)
+- [Form Handling](#form-handling)
+- [Routing](#routing)
+- [Accessibility (WCAG 2.1 AA)](#accessibility-wcag-21-aa)
+- [Testing Standards](#testing-standards)
+- [Performance Best Practices](#performance-best-practices)
+- [Error Handling](#error-handling)
+- [Development Workflow](#development-workflow)
+
+---
+
+## Overview
+
+This document establishes frontend development standards for the LTI React application. All frontend code must follow these standards without exception to ensure consistency, maintainability, and accessibility.
+
+**Key principles**:
+- **English only**: All code, comments, and user-facing text must be in English
+- **Functional components + hooks**: Modern React patterns only; no class components
+- **TypeScript strict mode**: Full type safety; no `any` types
+- **Accessibility first**: WCAG 2.1 AA compliance for all interactive components
+- **Composable components**: Small, focused, single-responsibility components
+- **Service-based API**: Centralized HTTP communication in service layer
+- **>80% test coverage**: Comprehensive testing of components and services
+
+---
+
+## Technology Stack
+
+**Source of Truth: [README.md](../../README.md)**
+
+All frontend development uses the exact stack defined in README.md. If any conflict exists, README.md is authoritative.
+
+| Component | Version | Purpose |
+|-----------|---------|---------|
+| **React** | v18.3.1 or higher | UI library (functional components + hooks only) |
+| **TypeScript** | v4.9.5 or higher | Type-safe language (strict mode required) |
+| **Create React App** | v5.0.0 or higher | Build tools and dev server |
+| **React Router DOM** | v6.23.1 or higher | Client-side routing |
+| **React Bootstrap** | v2.10.2 or higher | Bootstrap components for React |
+| **Bootstrap CSS** | v5.3.x or higher | Responsive CSS framework |
+| **Axios** | Latest stable | HTTP client for API calls |
+| **Jest** | Latest stable | Unit testing framework |
+| **React Testing Library** | Latest stable | Component testing utilities |
+
+**Frontend Dev Port**: `http://localhost:3000`  
+**Backend API Port**: `http://localhost:3010`
+
+---
+
+## Project Structure
+
+```
+frontend/
+├── public/
+│   ├── index.html              # HTML entry point
+│   ├── manifest.json           # PWA manifest
+│   └── robots.txt              # SEO
+├── src/
+│   ├── components/             # Reusable React components
+│   │   ├── CandidateForm/      # Feature components (folders per feature)
+│   │   │   ├── CandidateForm.tsx
+│   │   │   ├── CandidateForm.module.css
+│   │   │   └── CandidateForm.test.tsx
+│   │   └── common/             # Shared UI components
+│   │       ├── Header.tsx
+│   │       ├── Footer.tsx
+│   │       └── LoadingSpinner.tsx
+│   ├── services/               # HTTP client services (API communication)
+│   │   ├── candidateService.ts
+│   │   └── apiClient.ts
+│   ├── types/                  # TypeScript type definitions
+│   │   └── candidate.types.ts
+│   ├── App.tsx                 # Main app component and routing
+│   ├── App.css                 # Global app styles
+│   ├── index.tsx               # React entry point
+│   ├── index.css               # Global styles
+│   └── tests/                  # Shared test utilities
+│       └── testUtils.tsx
+├── package.json
+├── tsconfig.json               # TypeScript config
+├── jest.config.js              # Jest config
+└── .env                        # Environment variables (not in version control)
+```
+
+---
+
+## React Component Standards
+
+### Functional Components Only
+
+**All components must be functional components using React hooks**. No class components ever.
+
+```typescript
+// Good: Functional component with hooks
+export const CandidateForm: React.FC<CandidateFormProps> = ({ onSubmit }) => {
+    const [formData, setFormData] = useState<CandidateFormData>(initialData);
+    
+    const handleChange = (field: keyof CandidateFormData, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+    
+    return (
+        <Form onSubmit={handleSubmit}>
+            {/* form fields */}
+        </Form>
+    );
+};
+
+// Bad: Class component
+class CandidateForm extends React.Component {
+    state = { formData: initialData };
+    // ...
+}
+```
+
+### Component File Organization
+
+Each component should have these files:
+
+```
+ComponentName/
+├── ComponentName.tsx           # Component implementation
+├── ComponentName.module.css    # Component-scoped styles (CSS Modules)
+├── ComponentName.test.tsx      # Component tests
+└── types.ts                    # TypeScript types (if complex)
+```
+
+**Alternative for simple components**: Single file with inline styles or CSS.
+
+### Props Interface Pattern
+
+Always define explicit TypeScript interfaces for component props:
+
+```typescript
+// Good: Clear, explicit props interface
+interface CandidateFormProps {
+    initialData?: Candidate;
+    onSubmit: (data: CandidateFormData) => Promise<void>;
+    isLoading?: boolean;
+}
+
+export const CandidateForm: React.FC<CandidateFormProps> = ({
+    initialData,
+    onSubmit,
+    isLoading = false
+}) => {
+    // implementation
+};
+
+// Bad: Using `any`
+export const CandidateForm = (props: any) => { /* ... */ };
+
+// Bad: No types
+export const CandidateForm = ({ initialData, onSubmit, isLoading }) => { /* ... */ };
+```
+
+### Component Naming
+
+```typescript
+// Good: Descriptive PascalCase names
+export const AddCandidateForm = () => { /* ... */ };
+export const CandidateCard = () => { /* ... */ };
+export const LoadingSpinner = () => { /* ... */ };
+
+// Bad: Generic names
+export const Form = () => { /* ... */ };
+export const Card = () => { /* ... */ };
+export const Spinner = () => { /* ... */ };
+```
+
+---
+
+## TypeScript Standards
+
+### Strict Mode Required
+
+`tsconfig.json` must have `"strict": true`:
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
+```
+
+### Type Definitions
+
+Always define types explicitly:
+
+```typescript
+// Good: Explicit types
+interface UserData {
+    id: number;
+    firstName: string;
+    email: string;
+}
+
+export const getUserName = (user: UserData): string => {
+    return `${user.firstName}`;
+};
+
+// Bad: Missing/implicit types
+export const getUserName = (user) => {
+    return `${user.firstName}`;
+};
+
+// Bad: Using `any`
+export const getUserName = (user: any): any => {
+    return `${user.firstName}`;
+};
+```
+
+### Type organization
+
+Store types in type definition files:
+
+```typescript
+// types/candidate.types.ts
+export interface CandidateData {
+    id?: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    educations: EducationInput[];
+}
+
+export interface EducationInput {
+    institution: string;
+    degree: string;
+    startDate: string;
+    endDate?: string;
+}
+
+// In components
+import { CandidateData, EducationInput } from '../types/candidate.types';
+
+export const CandidateForm: React.FC<{ onSubmit: (data: CandidateData) => void }> = ({ onSubmit }) => {
+    // use types
+};
+```
+
+---
+
+## State Management with Hooks
+
+### useState for Local State
+
+Use `useState` for component-local state (not global application state):
+
+```typescript
+// Good: Local state with explicit types
+const [formData, setFormData] = useState<CandidateFormData>(initialData);
+const [isLoading, setIsLoading] = useState<boolean>(false);
+const [error, setError] = useState<string | null>(null);
+
+// Bad: Relying on type inference without explicit type
+const [formData, setFormData] = useState(initialData);  // Unclear type
+```
+
+### useEffect for Side Effects
+
+Always include dependency arrays:
+
+```typescript
+// Good: Explicit dependencies
+useEffect(() => {
+    const loadCandidates = async () => {
+        try {
+            const data = await candidateService.findAll();
+            setCandidates(data);
+        } catch (error) {
+            setError('Failed to load candidates');
+        }
+    };
+    
+    loadCandidates();
+}, []);  // Runs once on mount
+
+// Bad: Missing dependency array (runs every render)
+useEffect(() => {
+    const loadCandidates = async () => { /* ... */ };
+    loadCandidates();
+});
+
+// Bad: Missing dependencies (stale closure)
+useEffect(() => {
+    console.log(userId);  // userId not in dependency array
+}, []);
+```
+
+### useCallback for Expensive Operations
+
+Memoize callbacks to prevent unnecessary child re-renders:
+
+```typescript
+// Good: Memoized callback
+const handleChange = useCallback((field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+}, []);
+
+// Use in child component
+<CandidateField onChange={handleChange} />
+```
+
+---
+
+## Service Layer (API Communication)
+
+### Axios Configuration
+
+Centralize API communication in service layer:
+
+```typescript
+// services/apiClient.ts
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3010';
+
+export const apiClient = axios.create({
+    baseURL: API_URL,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
+// Request interceptor
+apiClient.interceptors.request.use(
+    config => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    error => Promise.reject(error)
+);
+
+// Response interceptor
+apiClient.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            // Handle auth error
+            localStorage.removeItem('authToken');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+```
+
+### Service Methods
+
+Organize API calls in service files:
+
+```typescript
+// services/candidateService.ts
+import { apiClient } from './apiClient';
+import { CandidateData, CandidateFormData } from '../types/candidate.types';
+
+export const candidateService = {
+    async create(data: CandidateFormData): Promise<CandidateData> {
+        const response = await apiClient.post('/candidates', data);
+        return response.data.data;
+    },
+    
+    async findById(id: number): Promise<CandidateData> {
+        const response = await apiClient.get(`/candidates/${id}`);
+        return response.data.data;
+    },
+    
+    async findAll(): Promise<CandidateData[]> {
+        const response = await apiClient.get('/candidates');
+        return response.data.data;
+    },
+    
+    async uploadCv(file: File, candidateId?: number): Promise<{ url: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post('/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data.data;
+    }
+};
+```
+
+### Error Handling in Services
+
+Provide clear error messages:
+
+```typescript
+// Good: Custom error handling
+export const candidateService = {
+    async create(data: CandidateFormData): Promise<CandidateData> {
+        try {
+            const response = await apiClient.post('/candidates', data);
+            return response.data.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const message = error.response?.data?.error?.message || 'Failed to create candidate';
+                throw new Error(message);
+            }
+            throw error;
+        }
+    }
+};
+```
+
+---
+
+## Bootstrap Integration
+
+### Container & Grid System
+
+Use Bootstrap's grid for layout:
+
+```typescript
+import { Container, Row, Col } from 'react-bootstrap';
+
+export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <Container className="my-5">
+        <Row>
+            <Col md={8} className="mx-auto">
+                {children}
+            </Col>
+        </Row>
+    </Container>
+);
+```
+
+### Form Components
+
+Use React Bootstrap Form components:
+
+```typescript
+import { Form, Button, Alert } from 'react-bootstrap';
+
+export const CandidateForm: React.FC<{ onSubmit: (data: CandidateData) => void }> = ({ onSubmit }) => {
+    const [formData, setFormData] = useState<CandidateData>(initialData);
+    const [error, setError] = useState<string | null>(null);
+    
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await onSubmit(formData);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+        }
+    };
+    
+    return (
+        <>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                    <Form.Label>First Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        required
+                        aria-label="First name"
+                    />
+                </Form.Group>
+                <Button variant="primary" type="submit">Submit</Button>
+            </Form>
+        </>
+    );
+};
+```
+
+---
+
+## Form Handling
+
+### Controlled Components
+
+All form inputs must be controlled:
+
+```typescript
+// Good: Controlled form
+const [email, setEmail] = useState('');
+
+return (
+    <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+    />
+);
+
+// Bad: Uncontrolled component
+return (
+    <input type="email" defaultValue="test@example.com" />
+);
+```
+
+### Form Validation
+
+Client-side validation before submission:
+
+```typescript
+// types/validation.ts
+export interface ValidationErrors {
+    [key: string]: string;
+}
+
+export const validateCandidateForm = (data: CandidateFormData): ValidationErrors => {
+    const errors: ValidationErrors = {};
+    
+    if (!data.firstName || data.firstName.trim().length === 0) {
+        errors.firstName = 'First name is required';
+    }
+    if (!/^[A-Za-z]+$/.test(data.firstName)) {
+        errors.firstName = 'First name must contain only letters';
+    }
+    if (!data.email || !data.email.includes('@')) {
+        errors.email = 'Valid email is required';
+    }
+    
+    return errors;
+};
+
+// In component
+const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors = validateCandidateForm(formData);
+    if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        return;
+    }
+    // Submit valid form
+};
+```
+
+---
+
+## Routing
+
+### Route Organization
+
+Define routes in App.tsx:
+
+```typescript
+// App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+export const App: React.FC = () => (
+    <BrowserRouter>
+        <div className="App">
+            <Header />
+            <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/candidates" element={<CandidateList />} />
+                <Route path="/candidates/new" element={<AddCandidateForm />} />
+                <Route path="/candidates/:id" element={<CandidateDetail />} />
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Footer />
+        </div>
+    </BrowserRouter>
+);
+```
+
+### Navigation
+
+Use Link components for navigation:
+
+```typescript
+import { Link } from 'react-router-dom';
+
+export const CandidateCard: React.FC<{ candidate: CandidateData }> = ({ candidate }) => (
+    <div className="candidate-card">
+        <h3>{candidate.firstName} {candidate.lastName}</h3>
+        <Link to={`/candidates/${candidate.id}`} className="btn btn-primary">
+            View Details
+        </Link>
+    </div>
+);
+```
+
+---
+
+## Accessibility (WCAG 2.1 AA)
+
+### Semantic HTML
+
+Use semantic HTML elements:
+
+```typescript
+// Good: Semantic HTML
+export const Header: React.FC = () => (
+    <header role="banner">
+        <nav aria-label="Main navigation">
+            <a href="/">Homepage</a>
+            <a href="/candidates">Candidates</a>
+        </nav>
+    </header>
+);
+
+// Bad: Non-semantic div soup
+export const Header: React.FC = () => (
+    <div className="header">
+        <div className="nav">
+            <div><a href="/">Homepage</a></div>
+            <div><a href="/candidates">Candidates</a></div>
+        </div>
+    </div>
+);
+```
+
+### ARIA Labels
+
+Provide ARIA labels for interactive elements:
+
+```typescript
+// Good: ARIA labels
+<button aria-label="Close menu" onClick={handleClose}>
+    ✕
+</button>
+
+<input
+    type="text"
+    placeholder="Search candidates"
+    aria-label="Search candidates"
+/>
+
+<form aria-label="Add candidate form">
+    {/* form fields */}
+</form>
+
+// Bad: No accessible label
+<button onClick={handleClose}>✕</button>
+```
+
+### Keyboard Navigation
+
+Ensure all interactive elements are keyboard accessible:
+
+```typescript
+// Good: Keyboard accessible button
+<button
+    onClick={handleClick}
+    onKeyDown={(e) => {
+        if (e.key === 'Enter') handleClick();
+    }}
+>
+    Click me
+</button>
+
+// React Bootstrap handles this automatically
+<Button onClick={handleClick}>Click me</Button>
+```
+
+### Color Contrast
+
+Ensure color contrast ratio >= 4.5:1 for normal text.
+
+```css
+/* Good: High contrast */
+.button {
+    background-color: #003d82;  /* Dark blue */
+    color: #ffffff;             /* White */
+}
+
+/* Bad: Low contrast */
+.button {
+    background-color: #eeeeee;  /* Light gray */
+    color: #aaaaaa;             /* Medium gray */
+}
+```
+
+---
+
+## Testing Standards
+
+### Component Testing
+
+Test component behavior and user interactions:
+
+```typescript
+// CandidateForm.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { CandidateForm } from './CandidateForm';
+
+describe('CandidateForm', () => {
+    it('should render form fields', () => {
+        render(<CandidateForm onSubmit={jest.fn()} />);
+        
+        expect(screen.getByLabelText('First Name')).toBeInTheDocument();
+        expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    });
+    
+    it('should submit form with valid data', async () => {
+        const mockSubmit = jest.fn();
+        render(<CandidateForm onSubmit={mockSubmit} />);
+        
+        fireEvent.change(screen.getByLabelText('First Name'), { target: { value: 'John' } });
+        fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'john@example.com' } });
+        fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+        
+        await waitFor(() => {
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({ firstName: 'John', email: 'john@example.com' })
+            );
+        });
+    });
+});
+```
+
+### Service Testing
+
+Test API communication:
+
+```typescript
+// candidateService.test.ts
+import { candidateService } from './candidateService';
+import * as apiClient from './apiClient';
+
+jest.mock('./apiClient');
+
+describe('candidateService', () => {
+    it('should create candidate', async () => {
+        const mockData = { id: 1, firstName: 'John', email: 'john@example.com' };
+        (apiClient.apiClient.post as jest.Mock).mockResolvedValue({
+            data: { data: mockData }
+        });
+        
+        const result = await candidateService.create(mockData);
+        
+        expect(result).toEqual(mockData);
+        expect(apiClient.apiClient.post).toHaveBeenCalledWith('/candidates', mockData);
+    });
+});
+```
+
+### Test Coverage
+
+**Target**: >80% coverage of branches, functions, lines, and statements
+
+```bash
+npm test -- --coverage
+```
+
+---
+
+## Performance Best Practices
+
+### Component Memoization
+
+Use `React.memo` for expensive components that receive stable props:
+
+```typescript
+// Good: Memoized component
+export const CandidateCard = React.memo<CandidateCardProps>(({ candidate, onClick }) => (
+    <div className="card" onClick={onClick}>
+        {candidate.firstName} {candidate.lastName}
+    </div>
+));
+
+// Use useCallback for stable callback references
+const handleClick = useCallback((id: number) => {
+    navigate(`/candidates/${id}`);
+}, [navigate]);
+```
+
+### Lazy Loading Routes
+
+Code-split large pages:
+
+```typescript
+import { lazy, Suspense } from 'react';
+
+const CandidateDetail = lazy(() => import('./pages/CandidateDetail'));
+
+export const App: React.FC = () => (
+    <Suspense fallback={<LoadingSpinner />}>
+        <Routes>
+            <Route path="/candidates/:id" element={<CandidateDetail />} />
+        </Routes>
+    </Suspense>
+);
+```
+
+### API Efficiency
+
+Minimize API calls:
+
+```typescript
+// Good: Batch requests
+const [candidates, positions] = await Promise.all([
+    candidateService.findAll(),
+    positionService.findAll()
+]);
+
+// Good: Pagination
+const [page, setPage] = useState(1);
+const candidates = await candidateService.findAll({ page, limit: 10 });
+```
+
+---
+
+## Error Handling
+
+### Try-Catch Pattern
+
+Always catch and display errors:
+
+```typescript
+const handleSubmit = async (data: CandidateData) => {
+    try {
+        setIsLoading(true);
+        await candidateService.create(data);
+        setSuccess('Candidate created successfully');
+    } catch (error) {
+        setError(error instanceof Error ? error.message : 'Unknown error occurred');
+    } finally {
+        setIsLoading(false);
+    }
+};
+```
+
+### User-Friendly Error Messages
+
+Display clear, actionable error messages:
+
+```typescript
+const getErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    if (typeof error === 'string') {
+        return error;
+    }
+    return 'An unexpected error occurred. Please try again.';
+};
+```
+
+---
+
+## Development Workflow
+
+### Branch Naming
+
+Follow this pattern:
+
+```bash
+feature/add-candidate-form-frontend    # New feature
+bugfix/form-validation-frontend        # Bug fix
+refactor/component-reorganization      # Refactoring
+```
+
+Add `-frontend` suffix to avoid conflicts with backend work.
+
+### Development Scripts
+
+```bash
+npm start                   # Start development server (port 3000)
+npm test                    # Run tests
+npm run test:coverage       # Run tests with coverage report
+npm run build              # Production build
+npm run lint               # Run ESLint
+```
+
+### Coding Standards
+
+- **English only**: All code, comments, and text must be in English
+- **Consistent formatting**: Use Prettier for auto-formatting
+- **Linting**: All files must pass ESLint checks
+- **Tests**: All new features must have tests with >80% coverage
+
+---
+
+## References
+
+- [Base Development Standards](./base-standards.mdc)
+- [Backend Standards](./backend-standards.mdc)
+- [Development Guide](./development_guide.md)
+- [README.md](../../README.md) — Source of truth for tech stack
+- [React Documentation](https://react.dev)
+- [React Bootstrap Documentation](https://react-bootstrap.github.io)
+- [WCAG 2.1 AA Guidelines](https://www.w3.org/WAI/WCAG21/quickref)

@@ -1,0 +1,338 @@
+---
+description: Base development standards and principles for the LTI project, applicable to all code and all team members.
+alwaysApply: true
+---
+
+# Base Development Standards
+
+This document establishes universal principles and language standards that apply across the entire LTI project—backend, frontend, infrastructure, and documentation.
+
+## 1. Core Development Principles
+
+### 1.1 Incremental Development
+- **Small tasks, one at a time**: Always decompose work into atomic, single-purpose steps.
+- **One step forward**: Never attempt multiple unrelated changes in a single commit or pull request.
+- **Focused commits**: Each commit should address one logical concern; use clear, descriptive messages in English.
+
+### 1.2 Domain-Driven Design (DDD)
+- **Model the domain explicitly**: Use clear bounded contexts, ubiquitous language, and business-focused abstractions.
+- **Entities and aggregates**: Define entities with identity and aggregate roots that protect invariants.
+- **Value objects**: Use immutable value objects for concepts without identity.
+- **Repositories**: Abstract data access behind repository interfaces that align with domain language.
+
+### 1.3 Code Quality
+- **Type Safety**: All new code must be fully typed (TypeScript for backend and frontend).
+- **Clear Naming**: Use descriptive, unambiguous names for all variables, functions, classes, and files:
+  - Classes and types: `PascalCase` (e.g., `Candidate`, `CandidateService`)
+  - Functions and variables: `camelCase` (e.g., `fetchCandidates`, `candidateData`)
+  - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_CANDIDATES_PER_PAGE`)
+  - CSS classes: `kebab-case` (e.g., `candidate-card`)
+- **SOLID Principles**: Follow Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion.
+- **DRY (Don't Repeat Yourself)**: Extract reusable logic into functions, hooks, or services; highlight repeated patterns.
+
+### 1.4 Critical Thinking
+- **Question Assumptions**: Always verify requirements and assumptions before implementation.
+- **Validate Constraints**: Confirm that data model constraints, API contracts, and UI requirements are clearly understood.
+- **Pattern Detection**: Identify and highlight repeated code patterns to enable refactoring.
+
+---
+
+## 2. Language Standards
+
+### 2.1 English Only
+All technical artifacts **must always use English**, with no exceptions:
+
+- **Code**: All variable names, function names, class names, comments, error messages, and log messages.
+- **Documentation**: README files, API specifications, architecture guides, and data model documentation.
+- **Testing**: All test names, descriptions, and assertion messages.
+- **Version Control**: Git commit messages, branch names, and PR descriptions.
+- **Configuration**: Environment variable names, configuration file keys, and script comments.
+- **Communication**: Jira tickets, team discussions, and review comments.
+
+**Example**:
+```typescript
+// Good
+const fetchActiveCandidates = async (): Promise<Candidate[]> => {
+  const candidates = await prisma.candidate.findMany({
+    where: { status: 'active' }
+  });
+  return candidates;
+};
+
+// Bad
+const obtenerCandidatosActivos = async () => { // Spanish - not allowed
+  const candidatos = await prisma.candidate.findMany({...}); // Spanish - not allowed
+};
+```
+
+### 2.2 Consistent Documentation Language
+- All documentation must be in English, regardless of physical location or team language preferences.
+- Comments in code must explain *why* a decision was made, not merely *what* the code does.
+- Error messages and user-facing text must use clear, professional English.
+
+---
+
+## 3. Project Technology Stack (Source: README.md)
+
+### 3.1 Backend
+- **Runtime**: Node.js (v16 or higher)
+- **Language**: TypeScript (v4.9.5 or higher)
+- **Framework**: Express.js (v4.19.2 or higher)
+- **ORM**: Prisma (v5.13.0 or higher)
+- **Database**: PostgreSQL (in Docker container, port 5432)
+- **API Port**: `http://localhost:3010`
+
+### 3.2 Frontend
+- **Framework**: React (v18.3.1 or higher) with Create React App
+- **Language**: TypeScript (v4.9.5 or higher)
+- **UI Library**: React Bootstrap (v2.10.2 or higher)
+- **Router**: React Router DOM (v6.23.1 or higher)
+- **HTTP Client**: Axios
+- **Development Port**: `http://localhost:3000`
+
+### 3.3 Infrastructure
+- **Containerization**: Docker and Docker Compose
+- **Package Manager**: npm (v8 or higher)
+- **Version Control**: Git
+
+### 3.4 Development Tools
+- **Code Quality**: ESLint, Prettier, TypeScript Compiler
+- **Build Tools**: Webpack (via Create React App for frontend), TypeScript Compiler (for backend)
+- **Testing**: Jest (for both backend and frontend)
+- **Testing Libraries**: React Testing Library (frontend), Supertest (backend API testing)
+
+---
+
+## 4. Directory and File Structure (Source: README.md)
+
+```
+project-root/
+├── backend/
+│   ├── src/
+│   │   ├── index.ts              (Entry point)
+│   │   ├── domain/               (Domain models and entities)
+│   │   ├── application/          (Services and business logic)
+│   │   ├── presentation/         (Controllers and HTTP handlers)
+│   │   ├── routes/               (Route definitions)
+│   │   ├── infrastructure/       (Technical utilities, logging)
+│   │   ├── middleware/           (Express middleware)
+│   │   └── tests/                (Unit tests)
+│   ├── prisma/
+│   │   ├── schema.prisma         (Database schema)
+│   │   └── migrations/           (Database migrations)
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── jest.config.js
+│   └── .env                      (Environment variables, not in version control)
+├── frontend/
+│   ├── public/                   (Static assets: HTML, favicon, etc.)
+│   ├── src/
+│   │   ├── index.tsx             (Entry point)
+│   │   ├── App.tsx               (Main component and routing)
+│   │   ├── components/           (Reusable React components)
+│   │   ├── services/             (API service layer)
+│   │   ├── types/                (TypeScript type definitions)
+│   │   ├── tests/                (Component and service tests)
+│   │   ├── index.css             (Global styles)
+│   │   └── App.css               (Component styles)
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── jest.config.js
+│   └── .env                      (Environment variables, not in version control)
+├── docker-compose.yml            (PostgreSQL service definition)
+├── README.md                      (Project overview and setup instructions)
+└── ai-specs/
+    └── specs/                    (AI development guidelines and standards)
+```
+
+---
+
+## 5. File and Module Organization
+
+### 5.1 File Naming Conventions
+- **Component files**: Use `PascalCase` for React components (e.g., `CandidateForm.tsx`, `AddCandidateButton.tsx`)
+- **Service files**: Use `camelCase` for services and utilities (e.g., `candidateService.ts`, `apiClient.ts`)
+- **Type files**: Use `camelCase` for type definition files (e.g., `candidate.types.ts`)
+- **Test files**: Colocate tests or use folder pattern; name as `description.test.ts` or `description.spec.ts`
+- **Style files**: Use `camelCase` for CSS modules (e.g., `candidateForm.module.css`)
+
+### 5.2 Import Organization
+Group imports in the following order:
+1. External libraries (React, Express, etc.)
+2. Internal absolute imports (from `src/`)
+3. Relative imports (`./`, `../`)
+4. Side-effect imports as needed
+
+**Example**:
+```typescript
+import React, { useState } from 'react';
+import { Button, Form } from 'react-bootstrap';
+import axios from 'axios';
+
+import { candidateService } from 'src/services/candidateService';
+import { CandidateFormData } from 'src/types/candidate.types';
+
+import { validateEmail } from './helpers';
+```
+
+---
+
+## 6. Version Control Workflow
+
+### 6.1 Branch Naming
+Use descriptive branch names following the pattern:
+- Feature: `feature/[description]` (e.g., `feature/add-candidate-form`)
+- Bugfix: `bugfix/[description]` (e.g., `bugfix/email-validation`)
+- Refactor: `refactor/[description]` (e.g., `refactor/candidate-service-optimization`)
+
+### 6.2 Commit Messages
+Commit messages must:
+- Be written in English
+- Follow the format: `[Type] Brief description` where Type is one of: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+- Never exceed 72 characters for the first line
+- Include a detailed description in the body if the change is complex
+
+**Examples**:
+```
+feat: Add candidate form component with validation
+
+- Implement AddCandidateForm component with client-side validation
+- Create candidateService for API calls
+- Add TypeScript types for candidate data
+
+fix: Correct email validation regex pattern
+
+refactor: Extract candidate validation logic into dedicated module
+```
+
+---
+
+## 7. Environment Configuration
+
+### 7.1 Environment Variables
+Never commit `.env` files to version control. Use `.env.example` as a template:
+
+**Backend** (`backend/.env`):
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/lti_db
+NODE_ENV=development
+PORT=3010
+```
+
+**Frontend** (`frontend/.env`):
+```env
+REACT_APP_API_URL=http://localhost:3010
+```
+
+### 7.2 Configuration Management
+- Store all sensitive information (API keys, database passwords) in environment variables only.
+- Never log sensitive information in production.
+- Environment-specific defaults should be documented in `.env.example` templates.
+
+---
+
+## 8. Code Review Standards
+
+### 8.1 Review Criteria
+All code must be reviewed before merging, checking for:
+- **Correctness**: Does the code do what it claims to do?
+- **Testing**: Are tests included and comprehensive?
+- **Standards**: Does it follow the standards in this document?
+- **Performance**: Are there obvious performance issues or inefficiencies?
+- **Security**: Are there security vulnerabilities or anti-patterns?
+- **Documentation**: Is the code well-commented and is related documentation updated?
+
+### 8.2 Reviewer Responsibilities
+- Provide constructive, actionable feedback
+- Use examples to illustrate points
+- Approve only when satisfied with the changes
+- Request changes clearly and precisely
+
+---
+
+## 9. Error Handling and Logging
+
+### 9.1 General Principles
+- Always handle errors explicitly—do not silently fail.
+- Log errors with sufficient context to diagnose issues.
+- Use consistent error message formatting.
+- Never expose sensitive information in error responses.
+
+### 9.2 Logging Levels
+- **ERROR**: Critical failures, unhandled exceptions, failed API calls
+- **WARN**: Deprecated usage, recoverable errors, performance anomalies
+- **INFO**: Important state transitions, significant operations
+- **DEBUG**: Detailed information for troubleshooting (not in production)
+
+---
+
+## 10. Performance and Security Considerations
+
+### 10.1 Performance
+- Minimize API calls—batch when possible.
+- Implement pagination for large data sets.
+- Optimize database queries (use indexes, avoid N+1 queries).
+- Cache appropriately (consider staleness vs performance trade-off).
+
+### 10.2 Security
+- Validate and sanitize all user input on both client and server.
+- Use HTTPS in production.
+- Implement proper authentication and authorization.
+- Follow the principle of least privilege for database access.
+- Keep dependencies up to date; regularly scan for vulnerabilities.
+
+---
+
+## 11. Testing Standards
+
+### 11.1 General Requirements
+- Minimum **90% code coverage** for new code in critical paths.
+- Tests should be fast, deterministic, and independent.
+- Test behavior, not implementation details.
+
+### 11.2 Test Types
+- **Unit tests**: Test individual functions, services, and components in isolation.
+- **Integration tests**: Test interaction between layers (e.g., controller → service → repository).
+- **End-to-end tests**: Test complete user workflows across frontend and backend.
+
+### 11.3 Test Organization
+- Colocate tests with the code they test or organize in a dedicated `tests/` or `__tests__/` directory.
+- Use descriptive test names that explain the scenario and expected outcome.
+- Use mocking and stubbing appropriately to isolate units under test.
+
+---
+
+## 12. Accessibility and Compatibility
+
+### 12.1 Frontend Accessibility (WCAG 2.1 AA)
+- All interactive elements must be keyboard accessible.
+- Use semantic HTML and ARIA labels appropriately.
+- Ensure sufficient color contrast ratios.
+- Provide alt text for images.
+- Test with screen readers regularly.
+
+### 12.2 Browser Compatibility
+- Support the latest two versions of major browsers (Chrome, Firefox, Safari, Edge).
+- Test on multiple devices and screen sizes (mobile, tablet, desktop).
+- Progressively enhance features for older browsers.
+
+---
+
+## 13. Continuous Improvement
+
+All team members and AI agents must:
+- **Learn from feedback**: Actively incorporate user suggestions and lessons learned.
+- **Improve documentation**: Keep standards and guides current as the project evolves.
+- **Share knowledge**: Document decisions, patterns, and solutions for the team.
+- **Propose improvements**: Suggest enhancements to standards when issues are identified.
+
+---
+
+## References
+
+- [Backend Standards](./backend-standards.mdc)
+- [Frontend Standards](./frontend-standards.mdc)
+- [Development Guide](./development_guide.md)
+- [Documentation Standards](./documentation-standards.mdc)
+- [Data Model](./data-model.md)
+
