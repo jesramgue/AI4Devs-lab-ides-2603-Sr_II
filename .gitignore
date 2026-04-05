@@ -27,3 +27,7 @@ yarn-error.log*
 
 # .env
 
+ai-specs/.commands/meta-prompt.md
+ai-specs/.commands/plan-backend-ticket.md
+ai-specs/.commands/plan-frontend-ticket.md
+ai-specs/.commands/update-docs.md

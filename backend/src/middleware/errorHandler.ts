@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
 import { DomainError } from '../domain/errors';
 
 interface StandardErrorResponse {
@@ -31,6 +32,21 @@ export function errorHandler(
     };
     res.status(err.statusCode).json(body);
     return;
+  }
+
+  // Multer errors (e.g. file too large)
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      const body: StandardErrorResponse = {
+        statusCode: 413,
+        error: {
+          message: 'File size exceeds maximum allowed limit',
+          code: 'FILE_TOO_LARGE',
+        },
+      };
+      res.status(413).json(body);
+      return;
+    }
   }
 
   // Unknown / unhandled error — avoid leaking internals
