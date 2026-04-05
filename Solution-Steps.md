@@ -7,3 +7,5 @@ Dado que el ticket no es atómomico, hay que refinarlo desde el punto de vista d
 - Tras esto voy a verificar que las tareas son suficientemente atómicas pidiendo a los agentes de frontend y backend que me creen un plan para satisfacer los requerimientos funcionales y no funcionales, acceptance criteria, DoD.
     - [Frontend-Ticket Split](./prompts/frontend_ticket_split.md)
     - [Backend-Ticket Split](./prompts/backend_ticket_split.md)
+- Con el split en tickets para backend y frontend detallando las tareas blocker de uno y otro con /plan pediré que teniendo en cuenta ambos tickets (dando contexto del ambos en ficheros Markdown) me genere un plan de implementación incluyendo validación manual, fases y memory banks:
+    - [Implementation Plan](./prompts/implementation_plan.md)
