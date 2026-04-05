@@ -500,7 +500,7 @@ const AddCandidate: React.FC = () => {
           <legend className="h4">Personal Information</legend>
           <Row className="g-3">
             <Col md={6}>
-              <Form.Group controlId="firstName">
+              <Form.Group>
                 <Form.Label htmlFor="firstName">{renderRequiredLabel('First Name')}</Form.Label>
                 <Form.Control
                   id="firstName"
@@ -520,7 +520,7 @@ const AddCandidate: React.FC = () => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group controlId="lastName">
+              <Form.Group>
                 <Form.Label htmlFor="lastName">{renderRequiredLabel('Last Name')}</Form.Label>
                 <Form.Control
                   id="lastName"
@@ -540,7 +540,7 @@ const AddCandidate: React.FC = () => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group controlId="email">
+              <Form.Group>
                 <Form.Label htmlFor="email">{renderRequiredLabel('Email')}</Form.Label>
                 <Form.Control
                   id="email"
@@ -560,7 +560,7 @@ const AddCandidate: React.FC = () => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group controlId="phone">
+              <Form.Group>
                 <Form.Label htmlFor="phone">Phone</Form.Label>
                 <Form.Control
                   id="phone"
@@ -578,7 +578,7 @@ const AddCandidate: React.FC = () => {
               </Form.Group>
             </Col>
             <Col xs={12}>
-              <Form.Group controlId="address">
+              <Form.Group>
                 <Form.Label htmlFor="address">Address</Form.Label>
                 <Form.Control
                   id="address"
@@ -604,7 +604,7 @@ const AddCandidate: React.FC = () => {
           {formData.educations.map((education, index) => (
             <Row className="g-3 mb-3" key={`education-${index}`}>
               <Col md={6}>
-                <Form.Group controlId={`education-institution-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`education-institution-${index}`}>
                     {renderRequiredLabel('Institution')}
                   </Form.Label>
@@ -632,7 +632,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group controlId={`education-title-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`education-title-${index}`}>{renderRequiredLabel('Title')}</Form.Label>
                   <Form.Control
                     id={`education-title-${index}`}
@@ -652,7 +652,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col md={5}>
-                <Form.Group controlId={`education-startDate-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`education-startDate-${index}`}>
                     {renderRequiredLabel('Start Date')}
                   </Form.Label>
@@ -680,7 +680,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col md={5}>
-                <Form.Group controlId={`education-endDate-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`education-endDate-${index}`}>End Date</Form.Label>
                   <Form.Control
                     id={`education-endDate-${index}`}
@@ -733,7 +733,7 @@ const AddCandidate: React.FC = () => {
           {formData.workExperiences.map((workExperience, index) => (
             <Row className="g-3 mb-3" key={`work-experience-${index}`}>
               <Col md={6}>
-                <Form.Group controlId={`work-company-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`work-company-${index}`}>{renderRequiredLabel('Company')}</Form.Label>
                   <Form.Control
                     id={`work-company-${index}`}
@@ -753,7 +753,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group controlId={`work-position-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`work-position-${index}`}>{renderRequiredLabel('Position')}</Form.Label>
                   <Form.Control
                     id={`work-position-${index}`}
@@ -773,7 +773,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col xs={12}>
-                <Form.Group controlId={`work-description-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`work-description-${index}`}>
                     {renderRequiredLabel('Description')}
                   </Form.Label>
@@ -802,7 +802,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col md={5}>
-                <Form.Group controlId={`work-startDate-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`work-startDate-${index}`}>{renderRequiredLabel('Start Date')}</Form.Label>
                   <Form.Control
                     id={`work-startDate-${index}`}
@@ -824,7 +824,7 @@ const AddCandidate: React.FC = () => {
                 </Form.Group>
               </Col>
               <Col md={5}>
-                <Form.Group controlId={`work-endDate-${index}`}>
+                <Form.Group>
                   <Form.Label htmlFor={`work-endDate-${index}`}>End Date</Form.Label>
                   <Form.Control
                     id={`work-endDate-${index}`}
@@ -868,7 +868,7 @@ const AddCandidate: React.FC = () => {
 
         <fieldset className="mb-4">
           <legend className="h4">CV Upload</legend>
-          <Form.Group controlId="cvFile">
+          <Form.Group>
             <Form.Label htmlFor="cvFile">Upload CV (PDF or DOCX)</Form.Label>
             <Form.Control
               id="cvFile"
