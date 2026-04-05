@@ -18,3 +18,64 @@ model User {
   email String  @unique
   name  String?
 }
+
+model Candidate {
+  id              String           @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String           @unique
+  phone           String?
+  address         String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  educations      Education[]
+  workExperiences WorkExperience[]
+  resume          Resume?
+
+  @@map("candidates")
+}
+
+model Education {
+  id          String    @id @default(cuid())
+  institution String
+  title       String
+  startDate   DateTime
+  endDate     DateTime?
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("educations")
+  @@index([candidateId])
+}
+
+model WorkExperience {
+  id          String    @id @default(cuid())
+  company     String
+  position    String
+  description String
+  startDate   DateTime
+  endDate     DateTime?
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("work_experiences")
+  @@index([candidateId])
+}
+
+model Resume {
+  id          String    @id @default(cuid())
+  filePath    String
+  fileType    String
+  fileSize    Int
+  candidateId String    @unique
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  uploadedAt  DateTime  @default(now())
+
+  @@map("resumes")
+  @@index([candidateId])
+}
