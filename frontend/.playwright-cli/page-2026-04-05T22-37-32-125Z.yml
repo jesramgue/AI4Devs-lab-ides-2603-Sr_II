@@ -1,0 +1,11 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - paragraph [ref=e6]: Candidate Management
+    - heading "Candidate Dashboard" [level=1] [ref=e7]
+    - paragraph [ref=e8]: Start a new candidate intake flow and manage submissions from one place.
+  - region "Quick Actions" [ref=e9]:
+    - heading "Quick Actions" [level=2] [ref=e10]
+    - paragraph [ref=e11]: Use the primary action below to open the Add Candidate form.
+    - link "Add a new candidate" [active] [ref=e12] [cursor=pointer]:
+      - /url: /candidates/new
+      - text: + Add Candidate

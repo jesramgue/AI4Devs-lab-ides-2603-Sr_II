@@ -1,0 +1,84 @@
+- main [ref=e13]:
+  - generic [ref=e15]:
+    - link "Back to Dashboard" [ref=e16] [cursor=pointer]:
+      - /url: /
+    - heading "Add Candidate" [level=1] [ref=e17]
+    - paragraph [ref=e18]: Complete all required fields to submit a new candidate.
+  - generic [ref=e20]:
+    - group "Personal Information" [ref=e21]:
+      - generic [ref=e22]: Personal Information
+      - generic [ref=e23]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: First Name*
+          - textbox "First Name" [ref=e27]
+          - alert
+        - generic [ref=e29]:
+          - generic [ref=e30]: Last Name*
+          - textbox "Last Name" [ref=e31]
+          - alert
+        - generic [ref=e33]:
+          - generic [ref=e34]: Email*
+          - textbox "Email" [ref=e35]
+          - alert
+        - generic [ref=e37]:
+          - text: Phone
+          - textbox "Phone" [ref=e38]
+          - alert
+        - generic [ref=e40]:
+          - text: Address
+          - textbox "Address" [ref=e41]
+          - alert
+    - group "Education" [ref=e42]:
+      - generic [ref=e43]: Education
+      - generic [ref=e44]:
+        - generic [ref=e46]:
+          - generic [ref=e47]: Institution*
+          - textbox "Institution" [ref=e48]
+          - alert
+        - generic [ref=e50]:
+          - generic [ref=e51]: Title*
+          - textbox "Title" [ref=e52]
+          - alert
+        - generic [ref=e54]:
+          - generic [ref=e55]: Start Date*
+          - textbox "Start Date" [ref=e56]
+          - alert
+        - generic [ref=e58]:
+          - text: End Date
+          - textbox "End Date" [ref=e59]
+          - alert
+        - button "Remove" [disabled] [ref=e61]
+      - button "Add Education" [ref=e63]
+    - group "Work Experience" [ref=e64]:
+      - generic [ref=e65]: Work Experience
+      - generic [ref=e66]:
+        - generic [ref=e68]:
+          - generic [ref=e69]: Company*
+          - textbox "Company" [ref=e70]
+          - alert
+        - generic [ref=e72]:
+          - generic [ref=e73]: Position*
+          - textbox "Position" [ref=e74]
+          - alert
+        - generic [ref=e76]:
+          - generic [ref=e77]: Description*
+          - textbox "Description" [ref=e78]
+          - alert
+        - generic [ref=e80]:
+          - generic [ref=e81]: Start Date*
+          - textbox "Start Date" [ref=e82]
+          - alert
+        - generic [ref=e84]:
+          - text: End Date
+          - textbox "End Date" [ref=e85]
+          - alert
+        - button "Remove" [disabled] [ref=e87]
+      - button "Add Experience" [ref=e89]
+    - group "CV Upload" [ref=e90]:
+      - generic [ref=e91]: CV Upload
+      - generic [ref=e92]:
+        - text: Upload CV (PDF or DOCX)
+        - button "Upload CV (PDF or DOCX)" [ref=e93]
+        - generic [ref=e94]: "Accepted formats: PDF or DOCX. Maximum size: 10 MB."
+        - alert
+    - button "Submit Candidate" [ref=e95]
