@@ -11,3 +11,5 @@ Dado que el ticket no es atómomico, hay que refinarlo desde el punto de vista d
     - [Implementation Plan](./prompts/implementation_plan.md)
 - Basandome en el plan de implementación definido preguntaré en el implementation approach (multi-agente, autopilot, etc), parecido al metaprompt que vimos de Álvaro:
     - [Implementation Strategy](./prompts/implementation_strategy.md)
+- Ahora usaré la estrategia de meta-prompt para que me de los prompts para cada una de las fases (en modo multi-agente como se define en la estrategia):
+    - [Phase 1 Meta-Prompt](./prompts/phase-1-meta-prompt.md)
