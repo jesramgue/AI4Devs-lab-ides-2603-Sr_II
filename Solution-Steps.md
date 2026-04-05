@@ -25,4 +25,6 @@ Dado que el ticket no es atómomico, hay que refinarlo desde el punto de vista d
     - En esta versión ya tenemos algo más visual y funcional.
     ![](assets/20260405_231316_image.png)
   - [Phase 3 Meta-Prompt](./prompts/phase-3-meta-prompt.md)
-  - [Phase 4 Meta-Prompt](./prompts/phase-4-meta-prompt.md)
+  - [Phase 4 Meta-Prompt](./prompts/phase-4-meta-prompt.md) - Durante la verificación de esta faseme di cuenta que no pudo ejecutar los Test de Frontend ni tampoco el browser accesibility verification debido a un CMD que se quedó bloqueado. Hice un Hard-kill del proceso y pedí que lo realizara de nuevo resultando en un error solventado.
+   - [Phase 5 Meta-Prompt](./prompts/phase-5-meta-prompt.md) - En este punto verifiqué la funcionalidad de guardar el candidato pero en la consola de Javascript daba un error. Dí el contexto de lo que estaba probando así como el stacktrace de la consola del Browser. (CORS)
+   
