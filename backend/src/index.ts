@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import uploadRoutes from './routes/uploadRoutes';
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -14,6 +15,9 @@ const port = 3010;
 app.get('/', (req, res) => {
   res.send('Hola LTI!');
 });
+
+// Register upload routes
+app.use(uploadRoutes);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
