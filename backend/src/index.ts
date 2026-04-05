@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import uploadRoutes from './routes/uploadRoutes';
 import { createCandidateRoutes } from './routes/candidateRoutes';
+import { securityHeaders } from './middleware/securityHeaders';
+import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -13,24 +14,22 @@ export default prisma;
 
 const port = 3010;
 
-// Middleware
+// Security headers — must be first
+app.use(securityHeaders);
+
+// Body parsing
 app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('Hola LTI!');
 });
 
-// Register upload routes
+// Routes
 app.use(uploadRoutes);
-
-// Register candidate routes
 app.use(createCandidateRoutes(prisma));
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.type('text/plain'); 
-  res.status(500).send('Something broke!');
-});
+// Centralized error handler — must be last
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

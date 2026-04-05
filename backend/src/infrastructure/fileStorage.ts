@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { Express } from 'express';
+import { UnsupportedFileTypeError, FileTooLargeError } from '../domain/errors';
+import { sanitizePath } from './security';
 
 export interface FileMetadata {
   filePath: string;
@@ -55,24 +57,28 @@ export class FileStorageService {
    */
   uploadFile(file: Express.Multer.File): FileMetadata {
     if (!this.validateMimeType(file)) {
-      throw new Error(
-        `Unsupported file type: ${file.mimetype}. Allowed types: ${this.allowedMimeTypes.join(', ')}`
-      );
+      throw new UnsupportedFileTypeError(file.mimetype);
     }
 
     if (!this.validateFileSize(file)) {
-      throw new Error(
-        `File size exceeds maximum of ${this.maxFileSizeMb}MB`
-      );
+      throw new FileTooLargeError(this.maxFileSizeMb);
     }
 
-    // Generate unique filename
+    // Sanitize filename to prevent directory traversal
     const timestamp = Date.now();
-    const filename = `${timestamp}-${file.originalname}`;
+    const safeOriginalName = sanitizePath(file.originalname);
+    const filename = `${timestamp}-${safeOriginalName}`;
     const filePath = path.join(this.uploadDir, filename);
 
-    // Save file
-    fs.writeFileSync(filePath, file.buffer);
+    // Guard against traversal even after sanitization
+    const resolvedUploadDir = path.resolve(this.uploadDir);
+    const resolvedFilePath = path.resolve(filePath);
+    if (!resolvedFilePath.startsWith(resolvedUploadDir + path.sep) &&
+        resolvedFilePath !== resolvedUploadDir) {
+      throw new Error('Invalid file path');
+    }
+
+    fs.writeFileSync(resolvedFilePath, file.buffer);
 
     return {
       filePath: filename,

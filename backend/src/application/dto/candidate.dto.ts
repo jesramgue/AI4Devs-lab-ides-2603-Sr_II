@@ -73,6 +73,8 @@ export interface CreateCandidatePayload {
     endDate?: string;
   }>;
   cvFilePath?: string;
+  cvFileType?: string;
+  cvFileSize?: number;
 }
 
 /**

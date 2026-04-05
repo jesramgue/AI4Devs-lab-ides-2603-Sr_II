@@ -1,18 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import { CandidateValidator, ValidationError } from '../validators/candidateValidator';
+import { CandidateValidator } from '../validators/candidateValidator';
 import {
   CreateCandidatePayload,
   CandidateResponseDTO,
-  EducationInput,
-  WorkExperienceInput,
 } from '../dto/candidate.dto';
-
-export interface CreateCandidateResult {
-  success: boolean;
-  data?: CandidateResponseDTO;
-  errors?: ValidationError[];
-  error?: string;
-}
+import {
+  ValidationError as DomainValidationError,
+  DuplicateEmailError,
+} from '../../domain/errors';
+import { sanitizeString, sanitizePath } from '../../infrastructure/security';
 
 export class CandidateService {
   private prisma: PrismaClient;
@@ -24,39 +20,51 @@ export class CandidateService {
   }
 
   /**
-   * Create a candidate with education, work experience, and resume in a transaction
-   * Ensures atomicity: all or nothing
+   * Create a candidate with education, work experience, and resume in a transaction.
+   * Throws domain errors on validation or business rule violations.
+   * Ensures atomicity: all-or-nothing.
    */
   async createCandidate(
     payload: CreateCandidatePayload
-  ): Promise<CreateCandidateResult> {
-    // Step 1: Validate personal info
+  ): Promise<CandidateResponseDTO> {
+    // Step 1: Sanitize string inputs
+    const sanitized: CreateCandidatePayload = {
+      ...payload,
+      firstName: sanitizeString(payload.firstName),
+      lastName: sanitizeString(payload.lastName),
+      email: sanitizeString(payload.email),
+      phone: payload.phone ? sanitizeString(payload.phone) : undefined,
+      address: payload.address ? sanitizeString(payload.address) : undefined,
+      cvFilePath: payload.cvFilePath
+        ? sanitizePath(payload.cvFilePath)
+        : undefined,
+      educations: payload.educations?.map((edu) => ({
+        ...edu,
+        institution: sanitizeString(edu.institution),
+        title: sanitizeString(edu.title),
+      })),
+      workExperiences: payload.workExperiences?.map((exp) => ({
+        ...exp,
+        company: sanitizeString(exp.company),
+        position: sanitizeString(exp.position),
+        description: sanitizeString(exp.description),
+      })),
+    };
+
+    // Step 2: Validate personal info
     const personalInfoErrors = this.validator.validatePersonalInfo({
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      email: payload.email,
-      phone: payload.phone,
-      address: payload.address,
+      firstName: sanitized.firstName,
+      lastName: sanitized.lastName,
+      email: sanitized.email,
+      phone: sanitized.phone,
+      address: sanitized.address,
     });
 
-    if (personalInfoErrors.length > 0) {
-      return {
-        success: false,
-        errors: personalInfoErrors,
-      };
-    }
-
-    // Step 2: Validate education entries
-    const educationErrors: ValidationError[] = [];
-    if (payload.educations && payload.educations.length > 0) {
-      payload.educations.forEach((edu, index) => {
-        const errors = this.validator.validateEducation({
-          institution: edu.institution,
-          title: edu.title,
-          startDate: edu.startDate,
-          endDate: edu.endDate,
-        });
-        // Add index to error field for clarity
+    // Step 3: Validate education entries
+    const educationErrors: Array<{ field: string; message: string }> = [];
+    if (sanitized.educations && sanitized.educations.length > 0) {
+      sanitized.educations.forEach((edu, index) => {
+        const errors = this.validator.validateEducation(edu);
         errors.forEach((err) => {
           educationErrors.push({
             field: `educations[${index}].${err.field}`,
@@ -66,18 +74,11 @@ export class CandidateService {
       });
     }
 
-    // Step 3: Validate work experience entries
-    const workExperienceErrors: ValidationError[] = [];
-    if (payload.workExperiences && payload.workExperiences.length > 0) {
-      payload.workExperiences.forEach((exp, index) => {
-        const errors = this.validator.validateWorkExperience({
-          company: exp.company,
-          position: exp.position,
-          description: exp.description,
-          startDate: exp.startDate,
-          endDate: exp.endDate,
-        });
-        // Add index to error field for clarity
+    // Step 4: Validate work experience entries
+    const workExperienceErrors: Array<{ field: string; message: string }> = [];
+    if (sanitized.workExperiences && sanitized.workExperiences.length > 0) {
+      sanitized.workExperiences.forEach((exp, index) => {
+        const errors = this.validator.validateWorkExperience(exp);
         errors.forEach((err) => {
           workExperienceErrors.push({
             field: `workExperiences[${index}].${err.field}`,
@@ -87,112 +88,90 @@ export class CandidateService {
       });
     }
 
-    // Combine all validation errors
-    const allErrors = [...educationErrors, ...workExperienceErrors];
+    const allErrors = [
+      ...personalInfoErrors,
+      ...educationErrors,
+      ...workExperienceErrors,
+    ];
     if (allErrors.length > 0) {
-      return {
-        success: false,
-        errors: allErrors,
-      };
+      throw new DomainValidationError('Validation failed', allErrors);
     }
 
-    // Step 4: Execute atomic transaction
-    try {
-      const result = await this.prisma.$transaction(async (tx) => {
-        // Check for duplicate email
-        const existingCandidate = await tx.candidate.findUnique({
-          where: { email: payload.email },
-        });
-
-        if (existingCandidate) {
-          throw new Error('Candidate with this email already exists');
-        }
-
-        // Create candidate
-        const candidate = await tx.candidate.create({
-          data: {
-            firstName: payload.firstName,
-            lastName: payload.lastName,
-            email: payload.email,
-            phone: payload.phone || null,
-            address: payload.address || null,
-          },
-        });
-
-        // Create education records if provided
-        if (payload.educations && payload.educations.length > 0) {
-          await tx.education.createMany({
-            data: payload.educations.map((edu) => ({
-              institution: edu.institution,
-              title: edu.title,
-              startDate: new Date(edu.startDate),
-              endDate: edu.endDate ? new Date(edu.endDate) : null,
-              candidateId: candidate.id,
-            })),
-          });
-        }
-
-        // Create work experience records if provided
-        if (payload.workExperiences && payload.workExperiences.length > 0) {
-          await tx.workExperience.createMany({
-            data: payload.workExperiences.map((exp) => ({
-              company: exp.company,
-              position: exp.position,
-              description: exp.description,
-              startDate: new Date(exp.startDate),
-              endDate: exp.endDate ? new Date(exp.endDate) : null,
-              candidateId: candidate.id,
-            })),
-          });
-        }
-
-        // Create resume record if file path provided
-        if (payload.cvFilePath) {
-          await tx.resume.create({
-            data: {
-              filePath: payload.cvFilePath,
-              fileType: 'application/pdf', // Default, could be enhanced
-              fileSize: 0, // Would need to be passed in payload or fetched
-              candidateId: candidate.id,
-            },
-          });
-        }
-
-        return candidate;
+    // Step 5: Execute atomic transaction
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Check for duplicate email inside transaction to prevent races
+      const existingCandidate = await tx.candidate.findUnique({
+        where: { email: sanitized.email },
       });
 
-      // Step 5: Return response DTO
-      return {
-        success: true,
-        data: {
-          id: result.id,
-          firstName: result.firstName,
-          lastName: result.lastName,
-          email: result.email,
-          phone: result.phone || undefined,
-          address: result.address || undefined,
-          createdAt: result.createdAt,
-          updatedAt: result.updatedAt,
-        },
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to create candidate';
-
-      // Handle specific error cases
-      if (errorMessage.includes('already exists')) {
-        return {
-          success: false,
-          error: 'A candidate with this email already exists',
-        };
+      if (existingCandidate) {
+        throw new DuplicateEmailError(sanitized.email);
       }
 
-      // For any transaction error, return generic message
-      return {
-        success: false,
-        error: 'Failed to create candidate. Please try again.',
-      };
-    }
+      // Create candidate
+      const candidate = await tx.candidate.create({
+        data: {
+          firstName: sanitized.firstName,
+          lastName: sanitized.lastName,
+          email: sanitized.email,
+          phone: sanitized.phone || null,
+          address: sanitized.address || null,
+        },
+      });
+
+      // Create education records if provided
+      if (sanitized.educations && sanitized.educations.length > 0) {
+        await tx.education.createMany({
+          data: sanitized.educations.map((edu) => ({
+            institution: edu.institution,
+            title: edu.title,
+            startDate: new Date(edu.startDate),
+            endDate: edu.endDate ? new Date(edu.endDate) : null,
+            candidateId: candidate.id,
+          })),
+        });
+      }
+
+      // Create work experience records if provided
+      if (sanitized.workExperiences && sanitized.workExperiences.length > 0) {
+        await tx.workExperience.createMany({
+          data: sanitized.workExperiences.map((exp) => ({
+            company: exp.company,
+            position: exp.position,
+            description: exp.description,
+            startDate: new Date(exp.startDate),
+            endDate: exp.endDate ? new Date(exp.endDate) : null,
+            candidateId: candidate.id,
+          })),
+        });
+      }
+
+      // Create resume record if file path provided
+      if (sanitized.cvFilePath) {
+        await tx.resume.create({
+          data: {
+            filePath: sanitized.cvFilePath,
+            fileType: payload.cvFileType || 'application/pdf',
+            fileSize: payload.cvFileSize || 0,
+            candidateId: candidate.id,
+          },
+        });
+      }
+
+      return candidate;
+    });
+
+    // Step 6: Return clean response DTO
+    return {
+      id: result.id,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      email: result.email,
+      phone: result.phone || undefined,
+      address: result.address || undefined,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    };
   }
 
   /**
