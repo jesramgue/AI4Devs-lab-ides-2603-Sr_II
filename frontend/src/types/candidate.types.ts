@@ -33,3 +33,34 @@ export interface CandidateFormData {
   workExperiences: WorkExperience[];
   cvFile: CVFile;
 }
+
+export interface CreateCandidatePayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  educations: Array<{
+    institution: string;
+    title: string;
+    startDate: string;
+    endDate?: string;
+  }>;
+  workExperiences: Array<{
+    company: string;
+    position: string;
+    description: string;
+    startDate: string;
+    endDate?: string;
+  }>;
+  cvFilePath?: string;
+}
+
+export interface UploadCVResponse {
+  success: boolean;
+  data: {
+    filePath: string;
+    fileType: string;
+    fileSize: number;
+  };
+}
